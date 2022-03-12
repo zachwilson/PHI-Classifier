@@ -138,13 +138,13 @@ def identify_phone(data):
             masked.append(str(age))
     data = data.drop(col,axis = 1)
     data["age"] = masked
-    return data """
+    return data
 
 def date_shift(data):
     #https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5070517/
     pass
 
-""" def simple_date_shift(data,ident_col,date_cols):
+ def simple_date_shift(data,ident_col,date_cols):
     shifts = {}
     uniques = data[ident_col].unique()
     for element in uniques:
@@ -218,9 +218,6 @@ def create_subject_id():
     big_frame.to_csv(output_name + '.csv',index=False)
     map_frame.to_csv(output_name + '_Sub_ID_map.csv',index=False)
 
-
-
-
 def module_select():
     modules = {'1':detect_PHI,'2':create_subject_id}
     while True:
@@ -231,6 +228,30 @@ def module_select():
             modules[selection]()
         else:
             print('Invalid module Please try agian')
+
+def get_disease_list():
+    pass
+
+def mask_rare_diseases():
+    data = read_data()
+    diseases = get_disease_list()
+    disease_col = input('Enter Column with desease name\n=>')
+    while True:
+        mask_type = input('Enter the number of the masking type you would like\n1: Remove only the desease name\n2: Remove the entire row in the table\n=>')
+        if mask_type in ['1','2']:
+            break
+        else:
+            print('Unrecognized masking option, Please try again')
+    to_drop = []
+    for i in range(data[disease_col]):
+        if data[disease_col][i] in diseases:
+            to_drop.append(i)
+    if mask_type == '1':
+        for index in to_drop:
+            data[disease_col][index] = None
+    if mask_type == '2':
+        data = data.drop(to_drop)
+    return data
 
 
 if __name__ == "__main__":
