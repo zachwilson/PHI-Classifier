@@ -142,18 +142,33 @@ def identify_phone(data):
 
 def date_shift(data):
     #https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5070517/
-    pass
+    pass """
 
- def simple_date_shift(data,ident_col,date_cols):
+def simple_date_shift():
+    #This chunk creates the big data frame
+    files = read_data()
+    big_frame = files[0]
+    for file in files:
+        big_frame = big_frame.merge(file,how='outer')
+    data = big_frame
+    #Get the subject and date columns
+    ident_col = input("enter the column containing individual subjects\n=>")
+    date_cols = input("enter the columns that have dates seperated by a comma\n=>")
+    date_cols = date_cols.strip().split(',')
     shifts = {}
+    #Get a list of every unique identifier in the subject column
     uniques = data[ident_col].unique()
+    #Assign each one a random amount to shift by
     for element in uniques:
         shift = random.SystemRandom().randint(1,366)
         shifts[element] = shift
+    #Itterate over the data frame shifting any date by the amount previously generated
     for index,row in data.iterrows():
+        #To make things simpler I make a new row with the shifts and replace instead of changing the old row
         new_row = []
         for col in data:
             if col in date_cols:
+                #If the entry was not processed as a date remove it instead of shifting it
                 if not (type(row[col]) == pd.Timestamp or type(row[col]) == datetime.datetime):
                     new_row.append(numpy.nan)
                     continue
@@ -161,11 +176,15 @@ def date_shift(data):
             else:
                 new_row.append(row[col])
         data.iloc[index] = new_row
-    return data """
+    name = input("Please enter name of new file\n=>")
+    data.to_csv(name + '.csv',index=False)
+    return data
 
 def detect_PHI():
     phi = {}
     files = read_data()
+    #Each type of PHI gets its own identification function
+    #Each function returns a list of columns that might contain that type of PHI
     for data in files:
         for column in identify_mrn(data):
             phi[data.name + ': ' + column] = ('MRN',data[column][:10])
@@ -189,6 +208,7 @@ def detect_PHI():
         print('-------------')
 
 def generate_ids(list_of_people):
+    # This just takes a list of people and assigns a random ID to each of them
     ids = {}
     for person in list_of_people:
         found = False
@@ -200,25 +220,32 @@ def generate_ids(list_of_people):
     return ids
 
 def create_subject_id():
+    #Read in the files and combine them
     files = read_data()
     big_frame = files[0]
     for file in files:
+        #An outer join presevers all of the data in every table i.e. Union
         big_frame = big_frame.merge(file,how='outer')
+    #Get the subject Coulmn and assign IDs
     subject_col = input('Input Subject Column\n=>')
     people = big_frame[subject_col].unique()
     id_mapping = generate_ids(people)
     big_frame['Subject ID'] = big_frame[subject_col].map(id_mapping)
+    #Get the PHI Coulmns and split them off into their own data frame
     phi_columns = input('Please enter the Personally identifing collumns seperated by commas\n=>')
     phi_columns = phi_columns.split(',')
     phi_columns = list(map(lambda x:x.strip(),phi_columns))
     map_cols = phi_columns + ['Subject ID']
     map_frame = big_frame[map_cols].copy()
+    #Drop all PHI columns from the first data frame
     big_frame = big_frame.drop(phi_columns,axis=1)
+    #Save the two new data frames
     output_name = input("Please enter name of new file without extension\n=>")
     big_frame.to_csv(output_name + '.csv',index=False)
     map_frame.to_csv(output_name + '_Sub_ID_map.csv',index=False)
 
-def module_select():
+"""def module_select():
+    #This is old and was used as an interface
     modules = {'1':detect_PHI,'2':create_subject_id}
     while True:
         selection = input('Please enter the number of the module you wish to use\n1: Detect PHI\n2:create subject IDs\n0: Exit\n=>')
@@ -251,11 +278,11 @@ def mask_rare_diseases():
             data[disease_col][index] = None
     if mask_type == '2':
         data = data.drop(to_drop)
-    return data
+    return data """
 
 
 if __name__ == "__main__":
     #data = read_data("Classifier_test.xlsx")
     #print(simple_date_shift(data,'feMRN',['fbirth_date','fAdmission_Dttm','fDischarge_Dttm']))
     #print(mask_phi("Classifier_test.xlsx"))
-    module_select()
+    print(simple_date_shift())

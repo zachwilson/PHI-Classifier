@@ -1,0 +1,20 @@
+Documentation For PHI Modules
+
+1: PHI Classifier
+    This module combs through the data given and spits out whichever columns it thinks might contain PHI along with the type of PHI and the first 10 rows of that column.
+    It does this mostly by looking through the titles of the columns for specific key words
+    It can also looks through the first 10 rows of each column and checks for specific patterns that might indicate PHI
+    Each possible type of PHI is given its own function
+
+2: Subject ID
+    This Module combines all of the given tables and returns two new tables.
+    The first table has all of the PHI removed and a subject ID table is added.
+    The second contains all of the PHI columns that were removed and maps them to the subject ID
+    The exact columns to be removed and the column that the subject ID is based on are inputted manualy.
+    The subject IDs are randomly generated in the range from 0 to 10 times the number of seperate entrees in the entered column
+
+3: Date Shifting
+    This Module Takes a series of tables, combines them, and shifts the dates on any column marked as containing dates
+    The amount that is shiftied is randomly generated for each subject in the range 1 to 366
+    The columns with dates and the column with subjects are both inputted manualy
+    The shifting is the same across a subject i.e. if a date for John is shifted by 30 days then all dates for John are shifted by 30 days
